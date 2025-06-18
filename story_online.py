@@ -15,79 +15,214 @@ logging.basicConfig(
 # ==================== Agent Prompts ====================
 
 story_planning_prompt = """
-你是一位资深的故事策划师。根据用户输入的故事概念，制定详细的故事设定。
+You are now a senior story strategist and creative consultant. Your task is to understand the user's story concept and develop a comprehensive story setting that serves as the foundation for a 50,000+ word novel.
 
-请输出JSON格式，包含以下字段：
-- story_theme: 故事主题
-- genre: 文学类型
-- setting: 故事背景设定
-- main_characters: 主要人物列表，每个人物包含name, description, role
-- world_building: 世界观设定
-- core_conflict: 核心冲突
-- target_chapters: 建议章节数量（25-30章）
+Please analyze the user input and create a detailed story framework in pure JSON format (do not use ```json``` markers).
 
-确保设定丰富有趣，为后续创作提供充分的基础。
+Output format requirements:
+{
+    "story_theme": "Main theme of the story",
+    "genre": "Literary genre (e.g., romance, fantasy, mystery)",
+    "setting": "Detailed background setting including time, place, and world context",
+    "main_characters": [
+        {
+            "name": "Character name",
+            "description": "Detailed character description",
+            "role": "Character's role in the story"
+        }
+    ],
+    "world_building": "Comprehensive world-building details",
+    "core_conflict": "Central conflict that drives the narrative",
+    "target_chapters": "Recommended chapter count (25-30 chapters)"
+}
+
+Example output:
+{
+    "story_theme": "Love transcending time and space",
+    "genre": "Science fiction romance",
+    "setting": "A futuristic city where time travel is possible but forbidden",
+    "main_characters": [
+        {
+            "name": "Alex Chen",
+            "description": "A brilliant physicist who discovers time travel",
+            "role": "Protagonist"
+        }
+    ],
+    "world_building": "A world where temporal authorities monitor time streams",
+    "core_conflict": "Love versus duty to preserve timeline integrity",
+    "target_chapters": 28
+}
+
+Requirements:
+- Ensure rich and engaging setting details
+- Create compelling characters with clear motivations
+- Establish conflicts that can sustain a full-length novel
+- Output pure JSON string without any markdown formatting
 """
 
 outline_design_prompt = """
-你是一位专业的大纲设计师。基于故事设定，设计详细的章节大纲。
+You are now a professional outline designer and narrative architect. Your task is to create a detailed chapter-by-chapter outline based on the provided story setting, designed for a 50,000+ word novel with 25-30 chapters.
 
-输入信息包含故事设定和人物信息。请设计25-30章的详细大纲，每章2000-3000字。
+Input: Story setting and character information in JSON format.
 
-输出JSON格式，包含章节列表，每章包含：
-- chapter_number: 章节编号
-- title: 章节标题
-- summary: 章节概要
-- key_events: 关键事件列表
-- character_development: 人物发展要点
-- target_words: 目标字数
+Your task is to design a comprehensive chapter outline where each chapter contains 2,000-3,000 words, ensuring proper pacing and narrative development.
 
-确保情节发展合理，节奏把控恰当，为5万字长篇小说奠定基础。
+Output format in pure JSON (do not use ```json``` markers):
+[
+    {
+        "chapter_number": 1,
+        "title": "Chapter title",
+        "summary": "Brief chapter summary",
+        "key_events": ["Event 1", "Event 2", "Event 3"],
+        "character_development": "How characters develop in this chapter",
+        "target_words": 2500
+    }
+]
+
+Example output:
+[
+    {
+        "chapter_number": 1,
+        "title": "The Discovery",
+        "summary": "Alex discovers the time travel device in the abandoned laboratory",
+        "key_events": [
+            "Alex explores the mysterious laboratory",
+            "Discovery of the temporal device",
+            "First accidental activation"
+        ],
+        "character_development": "Alex transforms from curious scientist to reluctant time traveler",
+        "target_words": 2400
+    },
+    {
+        "chapter_number": 2,
+        "title": "First Jump",
+        "summary": "Alex's first intentional time travel experience",
+        "key_events": [
+            "Preparation for time travel",
+            "Journey to the past",
+            "Unexpected consequences"
+        ],
+        "character_development": "Alex gains confidence but also realizes the dangers",
+        "target_words": 2600
+    }
+]
+
+Requirements:
+- Create 25-30 chapters with logical progression
+- Ensure each chapter advances the plot meaningfully
+- Balance action, character development, and world-building
+- Maintain proper pacing throughout the narrative
+- Output pure JSON string without any markdown formatting
 """
 
 content_writing_prompt = """
-你是一位优秀的小说作家。根据章节大纲和前文内容，创作具体的章节内容。
+You are now an accomplished novelist and creative writer. Your task is to write engaging chapter content based on the provided chapter outline and previous story context.
 
-写作要求：
-1. 字数达到2000-3000字
-2. 语言生动，描写细腻
-3. 保持人物性格一致
-4. 与前文内容连贯
-5. 推进情节发展
-6. 使用中文创作
+Your writing should be vivid, immersive, and maintain consistency with established characters and plot elements.
 
-请直接输出章节内容，不要包含标题。
+Writing requirements:
+- Target word count: 2,000-3,000 words per chapter
+- Use descriptive and engaging language
+- Maintain character consistency throughout
+- Ensure smooth narrative flow from previous chapters
+- Advance the plot according to the outline
+- Write in Chinese for better narrative expression
+
+Input format:
+- Chapter outline with key events and character development notes
+- Story setting and character information
+- Previous chapter content for context
+
+Output: Direct chapter content without title or formatting markers.
+
+Writing style guidelines:
+- Use vivid descriptions and sensory details
+- Develop realistic dialogue that reveals character
+- Balance action with introspection
+- Create emotional resonance with readers
+- Maintain narrative tension and pacing
+
+Please write the complete chapter content based on the provided information.
 """
 
 quality_review_prompt = """
-你是一位专业的文学编辑。审查章节内容的质量和一致性。
+You are now a professional literary editor and quality assurance specialist. Your task is to review chapter content for quality, consistency, and adherence to the established narrative framework.
 
-审查要点：
-1. 内容与大纲的符合度
-2. 人物性格和行为的一致性
-3. 情节发展的合理性
-4. 语言表达的质量
-5. 与前文的连贯性
+Your review should evaluate multiple aspects of the writing and provide actionable feedback.
 
-输出JSON格式：
-- quality_score: 质量评分（1-10）
-- consistency_check: 一致性检查结果
-- suggestions: 修改建议列表
-- approved: 是否通过审查（true/false）
-- revised_content: 修改后的内容（如需要）
+Review criteria:
+1. Adherence to the chapter outline and story framework
+2. Character consistency and development
+3. Plot coherence and logical progression
+4. Language quality and narrative flow
+5. Continuity with previous chapters
+
+Output format in pure JSON (do not use ```json``` markers):
+{
+    "quality_score": 8,
+    "consistency_check": "Detailed analysis of consistency issues",
+    "suggestions": [
+        "Specific improvement suggestion 1",
+        "Specific improvement suggestion 2"
+    ],
+    "approved": true,
+    "revised_content": "Improved content if revisions are needed"
+}
+
+Example output:
+{
+    "quality_score": 7,
+    "consistency_check": "Character dialogue matches established personality, but pacing could be improved in the middle section",
+    "suggestions": [
+        "Add more sensory details in the laboratory scene",
+        "Strengthen the emotional impact of the discovery moment",
+        "Clarify the technical explanation of the device"
+    ],
+    "approved": true,
+    "revised_content": ""
+}
+
+Evaluation guidelines:
+- Score 1-10 where 10 is exceptional quality
+- Focus on constructive feedback
+- Approve content that meets minimum quality standards
+- Provide revised content only if significant improvements are needed
+- Output pure JSON string without any markdown formatting
 """
 
 editing_prompt = """
-你是一位资深文学编辑。对章节内容进行最终润色。
+You are now a senior literary editor specializing in narrative polish and refinement. Your task is to perform final editing and enhancement of chapter content to achieve publication-ready quality.
 
-润色要求：
-1. 优化语言表达，增强可读性
-2. 完善细节描写
-3. 统一文风
-4. 修正语法错误
-5. 增强感染力
+CRITICAL REQUIREMENT: You must output the COMPLETE polished chapter content. Do not summarize, truncate, or provide excerpts. The output should be the full chapter with improvements applied.
 
-请直接输出润色后的章节内容。
+Your editing should focus on:
+- Language refinement and flow optimization
+- Enhanced readability and engagement
+- Consistent writing style throughout
+- Grammar and syntax perfection
+- Emotional impact amplification
+
+Editing principles:
+1. Preserve the author's voice while improving clarity
+2. Enhance descriptive passages for greater immersion
+3. Strengthen dialogue for authenticity and impact
+4. Ensure smooth transitions between scenes
+5. Optimize pacing for reader engagement
+6. MAINTAIN THE ORIGINAL LENGTH - do not shorten the content
+
+Input: Chapter content requiring final polish
+
+Output: Complete refined and polished chapter content ready for publication (FULL LENGTH)
+
+Quality standards:
+- Professional-grade language and style
+- Engaging and immersive narrative voice
+- Error-free grammar and syntax
+- Consistent tone and pacing
+- Enhanced emotional resonance
+- PRESERVE ORIGINAL CONTENT LENGTH
+
+Please provide the COMPLETE final polished version of the chapter content. Do not provide summaries or excerpts.
 """
 
 # ==================== Context Management ====================
@@ -129,7 +264,52 @@ class NovelContext:
 # ==================== Quality Control ====================
 
 def check_word_count(content):
-    return len(content)
+    """改进的字数统计 - 更准确地统计中文字数"""
+    # 移除空白字符后统计长度，对中文更准确
+    cleaned_content = content.replace(' ', '').replace('\n', '').replace('\t', '')
+    return len(cleaned_content)
+
+def save_novel_to_cache(novel_content, story_theme, total_words, total_chapters):
+    """保存完整小说到本地cache目录"""
+    import os
+    from datetime import datetime
+    
+    # 创建cache目录
+    cache_dir = "cache"
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+    
+    # 生成文件名
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_theme = "".join(c for c in story_theme if c.isalnum() or c in (' ', '-', '_')).rstrip()[:20]
+    filename = f"novel_{safe_theme}_{timestamp}.md"
+    filepath = os.path.join(cache_dir, filename)
+    
+    # 准备markdown内容
+    markdown_content = f"""# {story_theme}
+
+**创作时间**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}  
+**总字数**: {total_words:,} 字  
+**章节数**: {total_chapters} 章  
+
+---
+
+{novel_content}
+
+---
+
+*本小说由 LazyLLM Multi-Agent 系统创作*
+"""
+    
+    # 保存文件
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(markdown_content)
+        logging.info(f"完整小说已保存到: {filepath}")
+        return filepath
+    except Exception as e:
+        logging.error(f"保存小说失败: {e}")
+        return None
 
 def log_progress(stage, message, context=None):
     log_msg = f"{stage}: {message}"
@@ -145,7 +325,7 @@ def log_progress(stage, message, context=None):
 
 def create_novel_pipeline():
     # 环境配置
-    base_url = os.getenv("LAZYLLM_BASE_URL", "https://www.dmxapi.com/v1/")
+base_url = os.getenv("LAZYLLM_BASE_URL", "https://www.dmxapi.com/v1/")
     api_key = os.getenv("LAZYLLM_OPENAI_API_KEY", "")
     
     if not api_key:
@@ -242,6 +422,10 @@ def create_novel_pipeline():
             # 根据审查结果决定是否需要修改
             if review_result.get('approved', False):
                 final_content = review_result.get('revised_content', chapter_content)
+                if final_content.strip():  # 如果有修改内容，使用修改后的
+                    logging.info(f"质量审查: 使用修改后内容，原字数: {word_count}, 修改后字数: {check_word_count(final_content)}")
+                else:
+                    final_content = chapter_content  # 否则使用原内容
                 log_progress("质量审查", f"通过审查，质量评分：{review_result.get('quality_score', 'N/A')}")
             else:
                 final_content = chapter_content
@@ -251,12 +435,21 @@ def create_novel_pipeline():
             log_progress("编辑润色", "开始最终润色")
             polished_content = editor(final_content)
             
+            # 验证润色后内容长度
+            polished_word_count = check_word_count(polished_content)
+            original_word_count = check_word_count(final_content)
+            
+            # 如果润色后内容明显变短，使用原内容
+            if polished_word_count < original_word_count * 0.5:
+                logging.warning(f"编辑润色: 润色后内容过短({polished_word_count} vs {original_word_count})，使用原内容")
+                polished_content = final_content
+                polished_word_count = original_word_count
+            
             # 添加到上下文和最终小说
             context.add_chapter(polished_content)
             final_novel.append(f"# {chapter_outline.get('title', f'第{i+1}章')}\n\n{polished_content}")
             
-            final_word_count = check_word_count(polished_content)
-            log_progress("章节完成", f"第{i+1}章完成，润色后字数：{final_word_count}", context)
+            log_progress("章节完成", f"第{i+1}章完成，润色后字数：{polished_word_count}", context)
             
             # 检查是否达到5万字目标
             if context.total_words >= 50000:
@@ -267,15 +460,30 @@ def create_novel_pipeline():
         complete_novel = "\n\n".join(final_novel)
         log_progress("创作完成", f"小说创作完成！总字数：{context.total_words}，共{context.current_chapter}章")
         
-        return {
+        # 保存到本地cache目录
+        story_theme = context.story_setting.get('story_theme', '未知主题')
+        cache_file = save_novel_to_cache(complete_novel, story_theme, context.total_words, context.current_chapter)
+        
+        # 准备返回结果
+        result = {
+            "success": True,
+            "message": {
+                "content": f"✅ 小说创作完成！\n\n📖 **{story_theme}**\n\n📊 **统计信息**:\n- 总字数: {context.total_words:,} 字\n- 章节数: {context.current_chapter} 章\n- 文学类型: {context.story_setting.get('genre', '未知')}\n\n💾 **本地保存**: {cache_file or '保存失败'}\n\n---\n\n",
+                "log": "",
+                "files": []
+            },
             "novel": complete_novel,
             "statistics": {
                 "total_words": context.total_words,
                 "total_chapters": context.current_chapter,
-                "story_theme": context.story_setting.get('story_theme', ''),
-                "genre": context.story_setting.get('genre', '')
+                "story_theme": story_theme,
+                "genre": context.story_setting.get('genre', ''),
+                "cache_file": cache_file
             }
         }
+        
+        logging.info(f"返回结果: 成功创作{context.current_chapter}章小说，总计{context.total_words}字")
+        return result
     
     novel_creator.run = novel_creation_workflow
     return novel_creator.run

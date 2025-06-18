@@ -3,7 +3,14 @@ from lazyllm import pipeline, warp, bind, parallel
 from lazyllm.components.formatter import JsonFormatter
 import os
 import json
-import time
+import logging
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 # ==================== Agent Prompts ====================
 
@@ -125,11 +132,13 @@ def check_word_count(content):
     return len(content)
 
 def log_progress(stage, message, context=None):
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    log_msg = f"[{timestamp}] {stage}: {message}"
+    log_msg = f"{stage}: {message}"
     if context:
-        log_msg += f" | 当前字数: {context.total_words} | 进度: {context.current_chapter}/{len(context.outline)}"
-    print(log_msg)
+        log_msg += (
+            f" | 当前字数: {context.total_words}"
+            f" | 进度: {context.current_chapter}/{len(context.outline)}"
+        )
+    logging.info(log_msg)
     return log_msg
 
 # ==================== Main Pipeline ====================
@@ -167,6 +176,14 @@ def create_novel_pipeline():
         source="openai", model="gpt-4", base_url=base_url,
         api_key=api_key, stream=False, return_trace=True
     ).prompt(editing_prompt)
+
+    # 使用 pipeline 串联各 Agent，便于可视化和管理
+    with pipeline() as novel_creator:
+        novel_creator.planner = story_planner
+        novel_creator.outliner = outline_designer
+        novel_creator.writer = content_writer
+        novel_creator.reviewer = quality_reviewer
+        novel_creator.editor = editor
     
     # 小说创作主流程
     def novel_creation_workflow(user_input):
@@ -260,7 +277,8 @@ def create_novel_pipeline():
             }
         }
     
-    return novel_creation_workflow
+    novel_creator.run = novel_creation_workflow
+    return novel_creator.run
 
 # ==================== Web Interface ====================
 
@@ -268,15 +286,17 @@ if __name__ == '__main__':
     try:
         # 创建小说创作流程
         novel_workflow = create_novel_pipeline()
-        
+
+        logging.info("Web 服务启动，端口范围 23467-23999")
+
         # 使用WebModule提供Web界面
         lazyllm.WebModule(
-            novel_workflow, 
+            novel_workflow,
             port=range(23467, 24000),
             title="Multi-Agent小说创作系统",
             history=[]
         ).start().wait()
-        
+
     except Exception as e:
-        print(f"系统启动失败：{e}")
-        print("请确保已正确设置LAZYLLM_OPENAI_API_KEY环境变量")
+        logging.error(f"系统启动失败: {e}")
+        logging.error("请确保已正确设置LAZYLLM_OPENAI_API_KEY环境变量")

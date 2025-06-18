@@ -230,4 +230,10 @@ def quality_check(content, context):
 ### 9.3 技术扩展
 - 支持本地模型部署
 - 支持分布式创作
-- 支持实时协作编辑 
+- 支持实时协作编辑
+
+### 运行方式
+1. 配置 `LAZYLLM_OPENAI_API_KEY` 环境变量
+2. 可选地设置 `LAZYLLM_BASE_URL` 与 `NOVEL_TARGET_WORDS` 以调整接口地址和目标字数
+3. 运行 `python story_online.py`
+

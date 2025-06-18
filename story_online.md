@@ -29,5 +29,10 @@
 - 关键阶段均输出：阶段名称、说明、当前字数、总章节数
 - 错误信息记录为 ERROR 级别
 
+## 运行方式
+1. 设置 `LAZYLLM_OPENAI_API_KEY` 指向可用的 OpenAI API 密钥
+2. 可选变量 `LAZYLLM_BASE_URL` 与 `NOVEL_TARGET_WORDS` 控制接口地址与目标字数
+3. 运行 `python story_online.py` 后访问日志中显示的端口范围
+
 ## 与 README 的对比与反思
 README 中已经给出系统架构与主要组件。本实现遵循其设定，采用相同的 Agent 分工和流程。不过在实现上加入了 `logging` 记录，以及将核心流程封装为函数以便 Web 调用。若后续使用结果显示上下文管理或代理协作不足，可继续增加摘要生成 Agent 或更细致的状态管理功能。

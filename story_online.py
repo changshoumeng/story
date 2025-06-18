@@ -1,9 +1,16 @@
+"""Multi-Agent powered novel generation assistant.
+
+This script builds a LazyLLM pipeline that coordinates several agents to
+plan, outline, write, review and polish a long-form novel.
+"""
+
 import lazyllm
-from lazyllm import pipeline, warp, bind, parallel
+from lazyllm import pipeline
 from lazyllm.components.formatter import JsonFormatter
 import os
 import json
 import logging
+from dataclasses import dataclass, field
 
 
 logging.basicConfig(
@@ -11,6 +18,8 @@ logging.basicConfig(
     format='[%(asctime)s] %(levelname)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+TARGET_WORDS = int(os.getenv("NOVEL_TARGET_WORDS", "50000"))
 
 # ==================== Agent Prompts ====================
 
@@ -227,28 +236,34 @@ Please provide the COMPLETE final polished version of the chapter content. Do no
 
 # ==================== Context Management ====================
 
+@dataclass
 class NovelContext:
-    def __init__(self):
-        self.story_setting = {}
-        self.characters = {}
-        self.outline = []
-        self.written_chapters = []
-        self.current_chapter = 0
-        self.total_words = 0
+    """Maintain novel state and provide context for each chapter."""
+
+    story_setting: dict = field(default_factory=dict)
+    characters: dict = field(default_factory=dict)
+    outline: list = field(default_factory=list)
+    written_chapters: list = field(default_factory=list)
+    current_chapter: int = 0
+    total_words: int = 0
         
     def update_setting(self, setting):
+        """Update story setting and character index."""
         self.story_setting = setting
         self.characters = {char['name']: char for char in setting.get('main_characters', [])}
         
     def update_outline(self, outline):
+        """Store chapter outline list."""
         self.outline = outline
         
     def add_chapter(self, chapter_content):
+        """Append new chapter and update statistics."""
         self.written_chapters.append(chapter_content)
-        self.total_words += len(chapter_content)
+        self.total_words += check_word_count(chapter_content)
         self.current_chapter += 1
         
     def get_context_for_chapter(self, chapter_num):
+        """Return context dict for writing the given chapter."""
         # 获取前3章内容作为上下文
         recent_chapters = self.written_chapters[-3:] if self.written_chapters else []
         context = {
@@ -270,7 +285,7 @@ def check_word_count(content):
     return len(cleaned_content)
 
 def save_novel_to_cache(novel_content, story_theme, total_words, total_chapters):
-    """保存完整小说到本地cache目录"""
+    """Save the entire novel as a markdown file in a local cache directory."""
     import os
     from datetime import datetime
     
@@ -312,6 +327,7 @@ def save_novel_to_cache(novel_content, story_theme, total_words, total_chapters)
         return None
 
 def log_progress(stage, message, context=None):
+    """Write a progress message to logs and optionally include stats."""
     log_msg = f"{stage}: {message}"
     if context:
         log_msg += (
@@ -324,8 +340,9 @@ def log_progress(stage, message, context=None):
 # ==================== Main Pipeline ====================
 
 def create_novel_pipeline():
+    """Build and return the novel creation workflow pipeline."""
     # 环境配置
-base_url = os.getenv("LAZYLLM_BASE_URL", "https://www.dmxapi.com/v1/")
+    base_url = os.getenv("LAZYLLM_BASE_URL", "https://www.dmxapi.com/v1/")
     api_key = os.getenv("LAZYLLM_OPENAI_API_KEY", "")
     
     if not api_key:
@@ -450,10 +467,8 @@ base_url = os.getenv("LAZYLLM_BASE_URL", "https://www.dmxapi.com/v1/")
             final_novel.append(f"# {chapter_outline.get('title', f'第{i+1}章')}\n\n{polished_content}")
             
             log_progress("章节完成", f"第{i+1}章完成，润色后字数：{polished_word_count}", context)
-            
-            # 检查是否达到5万字目标
-            if context.total_words >= 50000:
-                log_progress("目标达成", f"已达到5万字目标，当前总字数：{context.total_words}")
+            if context.total_words >= TARGET_WORDS:
+                log_progress("目标达成", f"已达到{TARGET_WORDS}字目标，当前总字数：{context.total_words}")
                 break
         
         # 生成最终小说
